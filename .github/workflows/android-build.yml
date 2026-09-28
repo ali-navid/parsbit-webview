@@ -37,13 +37,10 @@ jobs:
 
           if [ -z "$SDKMANAGER" ]; then
             echo "ERROR: sdkmanager not found"
-            find "$ANDROID_SDK_ROOT" -maxdepth 5 -type f -name sdkmanager -print 2>/dev/null || true
             exit 1
           fi
 
           echo "Using sdkmanager: $SDKMANAGER"
-
-          chmod +x "$SDKMANAGER"
 
           yes | "$SDKMANAGER" --licenses >/dev/null || true
 
