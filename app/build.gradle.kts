@@ -6,12 +6,6 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 
-val signingProperties = Properties()
-val signingFile = rootProject.file("signing.properties")
-if (signingFile.exists()) {
-    signingProperties.load(FileInputStream(signingFile))
-}
-
 android {
     namespace = "com.parsbit.online"
     compileSdk = 36
@@ -20,33 +14,15 @@ android {
         applicationId = "com.parsbit.online"
         minSdk = 24
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0.0"
-    }
-
-    signingConfigs {
-        create("release") {
-            val ks = rootProject.file("parsbit-release.jks")
-            if (ks.exists() && signingProperties.isNotEmpty()) {
-                storeFile = ks
-                storePassword = signingProperties.getProperty("KEYSTORE_PASSWORD")
-                keyAlias = signingProperties.getProperty("KEY_ALIAS")
-                keyPassword = signingProperties.getProperty("KEY_PASSWORD")
-            }
-        }
+        versionCode = 4
+        versionName = "1.0.4"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
         release {
             isMinifyEnabled = false
             isShrinkResources = false
-            if (signingFile.exists()) {
-                signingConfig = signingConfigs.getByName("release")
-            }
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
         }
         debug {
             applicationIdSuffix = ".debug"

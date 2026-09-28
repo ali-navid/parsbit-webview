@@ -1,10 +1,8 @@
-name: ParsBit Android Build
+name: Android Build
 
 on:
-  workflow_dispatch:
   push:
-    branches:
-      - main
+    branches: [ main ]
 
 permissions:
   contents: read
@@ -12,7 +10,6 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -30,61 +27,19 @@ jobs:
 
       - name: Setup Android SDK
         run: |
-          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
-          echo "ANDROID_HOME=$ANDROID_HOME"
-
           SDKMANAGER=$(find "$ANDROID_SDK_ROOT/cmdline-tools" -type f -name sdkmanager 2>/dev/null | head -n 1)
-
-          if [ -z "$SDKMANAGER" ]; then
-            echo "ERROR: sdkmanager not found"
-            exit 1
-          fi
-
-          echo "Using sdkmanager: $SDKMANAGER"
-
+          if [ -z "$SDKMANAGER" ]; then echo "sdkmanager not found"; exit 1; fi
           yes | "$SDKMANAGER" --licenses >/dev/null || true
-
           "$SDKMANAGER" "platform-tools"
           "$SDKMANAGER" "platforms;android-36"
           "$SDKMANAGER" "build-tools;36.0.0"
 
-          echo "$ANDROID_SDK_ROOT/platform-tools" >> "$GITHUB_PATH"
-          echo "$ANDROID_SDK_ROOT/build-tools/36.0.0" >> "$GITHUB_PATH"
-
-      - name: Decode signing keystore
-        run: |
-          echo "${{ secrets.PARSBIT_KEYSTORE_BASE64 }}" | base64 --decode > parsbit-release.jks
-
-      - name: Create signing properties
-        run: |
-          cat > signing.properties <<EOF
-          KEYSTORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_ALIAS=${{ secrets.KEY_ALIAS }}
-          KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}
-          EOF
-
-      - name: Build Release APK
-        run: gradle assembleRelease --stacktrace
-
-      - name: Build Release AAB
-        run: gradle bundleRelease --stacktrace
+      - name: Build Debug APK
+        run: gradle assembleDebug --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: ParsBit-APK
-          path: app/build/outputs/apk/release/*.apk
+          name: WebView-APK
+          path: app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
-
-      - name: Upload AAB
-        uses: actions/upload-artifact@v4
-        with:
-          name: ParsBit-AAB
-          path: app/build/outputs/bundle/release/*.aab
-          if-no-files-found: error
-
-      - name: Cleanup signing files
-        if: always()
-        run: |
-          rm -f parsbit-release.jks
-          rm -f signing.properties
