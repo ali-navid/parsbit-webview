@@ -5,8 +5,10 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.view.View
 import android.webkit.CookieManager
 import android.webkit.DownloadListener
 import android.webkit.URLUtil
@@ -75,7 +77,16 @@ class MainActivity : AppCompatActivity() {
         settings.javaScriptCanOpenWindowsAutomatically = true
         settings.mediaPlaybackRequiresUserGesture = true
 
+        // رفع باگِ خالی‌شدن فیلد رمز بعد از کپچا:
+        // چارچوب Autofill اندروید در WebView گاهی هنگام فوکوس روی فیلد بعدی (مثل کپچا)
+        // فیلد رمز را پاک/بازنویسی می‌کند. با این کار، Autofill دست به فیلدهای داخل WebView نمی‌زند
+        // (کاربر همچنان دستی تایپ می‌کند؛ فقط پُرکردن/پاک‌کردن خودکار سیستم خاموش می‌شود).
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            webView.importantForAutofill = View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS
+        }
+
         CookieManager.getInstance().setAcceptCookie(true)
+        CookieManager.getInstance().setAcceptThirdPartyCookies(webView, true)
 
         webView.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
